@@ -10,6 +10,11 @@ interface Env {
 
 const router = Router();
 
+async function parseJson<T = any>(req: Request): Promise<T> {
+  // Helper to type-assert JSON payloads (req.json() is typed as unknown)
+  return (await req.json()) as T;
+}
+
 // Health check
 router.get('/api/health', () => {
   return new Response(JSON.stringify({ status: 'ok' }), {
@@ -20,7 +25,12 @@ router.get('/api/health', () => {
 // Consultation endpoints
 router.post('/api/consultations/create', async (req: Request, env: Env) => {
   try {
-    const body = await req.json();
+    const body = await parseJson<{
+      patient_id?: string;
+      doctor_id?: string;
+      nurse_id?: string;
+      scheduled_at?: string;
+    }>(req);
     const { patient_id, doctor_id, nurse_id, scheduled_at } = body;
 
     const consultation_id = crypto.randomUUID();
@@ -46,7 +56,7 @@ router.post('/api/consultations/create', async (req: Request, env: Env) => {
 
 // Get consultation details
 router.get('/api/consultations/:id', async (req: Request, env: Env) => {
-  const { id } = req.params;
+  const { id } = req.params as any;
   
   const stmt = env.DB.prepare(
     `SELECT * FROM consultations WHERE id = ?`
@@ -69,7 +79,7 @@ router.get('/api/consultations/:id', async (req: Request, env: Env) => {
 // Create Cloudflare Stream live input for consultation
 router.post('/api/stream/create-live-input', async (req: Request, env: Env) => {
   try {
-    const body = await req.json();
+    const body = await parseJson<{ consultation_id?: string }>(req);
     const { consultation_id } = body;
 
     const response = await fetch(
@@ -113,7 +123,7 @@ router.post('/api/stream/create-live-input', async (req: Request, env: Env) => {
 // Voice recognition and transcription webhook
 router.post('/api/speech/transcribe', async (req: Request, env: Env) => {
   try {
-    const body = await req.json();
+    const body = await parseJson<{ consultation_id?: string; audio_data?: any; voice_id?: string }>(req);
     const { consultation_id, audio_data, voice_id } = body;
 
     // Here you would integrate with Deepgram, AssemblyAI, or similar
@@ -142,7 +152,13 @@ router.post('/api/speech/transcribe', async (req: Request, env: Env) => {
 // Save anamnesis data
 router.post('/api/anamnesis/save', async (req: Request, env: Env) => {
   try {
-    const body = await req.json();
+    const body = await parseJson<{
+      consultation_id?: string;
+      chief_complaint?: string;
+      symptoms?: any;
+      signs?: any;
+      vital_signs?: any;
+    }>(req);
     const { 
       consultation_id, 
       chief_complaint, 
@@ -183,7 +199,16 @@ router.post('/api/anamnesis/save', async (req: Request, env: Env) => {
 // Generate digital prescription
 router.post('/api/prescriptions/create', async (req: Request, env: Env) => {
   try {
-    const body = await req.json();
+    const body = await parseJson<{
+      consultation_id?: string;
+      doctor_id?: string;
+      patient_id?: string;
+      medication_name?: string;
+      dosage?: string;
+      frequency?: string;
+      duration?: string;
+      instructions?: string;
+    }>(req);
     const {
       consultation_id,
       doctor_id,
@@ -235,7 +260,13 @@ router.post('/api/prescriptions/create', async (req: Request, env: Env) => {
 // Alert for critical symptoms
 router.post('/api/alerts/create', async (req: Request, env: Env) => {
   try {
-    const body = await req.json();
+    const body = await parseJson<{
+      patient_id?: string;
+      consultation_id?: string;
+      alert_type?: string;
+      severity?: string;
+      message?: string;
+    }>(req);
     const {
       patient_id,
       consultation_id,
