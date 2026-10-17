@@ -2,6 +2,13 @@
  * Cloudflare Stream integration for live streams.
  */
 
+type CloudflareApiResponse<T = any> = {
+  success?: boolean;
+  result?: T;
+  errors?: Array<any>;
+  messages?: Array<any>;
+};
+
 export class CloudflareStreamService {
   private accountId: string;
   private apiToken: string;
@@ -29,7 +36,7 @@ export class CloudflareStreamService {
         },
       );
 
-      const data = await response.json();
+      const data = (await response.json()) as CloudflareApiResponse<{ uid?: string }>;
       if (data?.success && data?.result?.uid) {
         return data.result.uid;
       }
@@ -54,11 +61,13 @@ export class CloudflareStreamService {
         },
       );
 
-      const data = await response.json();
+      const data = (await response.json()) as CloudflareApiResponse<{
+        rtmps?: { url?: string; streamKey?: string };
+      }>;
       if (data?.success && data?.result?.rtmps) {
         return {
-          url: data.result.rtmps.url,
-          streamKey: data.result.rtmps.streamKey,
+          url: data.result.rtmps.url || '',
+          streamKey: data.result.rtmps.streamKey || '',
         };
       }
 
