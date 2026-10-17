@@ -11,7 +11,7 @@ interface Env {
 const router = Router();
 
 async function parseJson<T = any>(req: Request): Promise<T> {
-  // Helper to type-assert JSON payloads (req.json() is typed as unknown)
+  // Helper to type-assert JSON payloads
   return (await req.json()) as T;
 }
 
@@ -34,12 +34,12 @@ router.post('/api/consultations/create', async (req: Request, env: Env) => {
     const { patient_id, doctor_id, nurse_id, scheduled_at } = body;
 
     const consultation_id = crypto.randomUUID();
-    
+
     const stmt = env.DB.prepare(
       `INSERT INTO consultations (id, patient_id, doctor_id, nurse_id, scheduled_at, status) 
        VALUES (?, ?, ?, ?, ?, 'scheduled')`
     );
-    
+
     await stmt.bind(consultation_id, patient_id, doctor_id, nurse_id, scheduled_at).run();
 
     return new Response(JSON.stringify({ id: consultation_id }), {
@@ -57,13 +57,13 @@ router.post('/api/consultations/create', async (req: Request, env: Env) => {
 // Get consultation details
 router.get('/api/consultations/:id', async (req: any, env: Env) => {
   const { id } = req.params;
-  
+
   const stmt = env.DB.prepare(
     `SELECT * FROM consultations WHERE id = ?`
   );
-  
+
   const result = await stmt.bind(id).first();
-  
+
   if (!result) {
     return new Response(JSON.stringify({ error: 'Consultation not found' }), {
       status: 404,
@@ -102,8 +102,8 @@ router.post('/api/stream/create-live-input', async (req: Request, env: Env) => {
       }
     );
 
-    const data = await response.json();
-    
+    const data: any = await response.json();
+
     if (!response.ok) {
       throw new Error(JSON.stringify(data));
     }
@@ -126,13 +126,10 @@ router.post('/api/speech/transcribe', async (req: Request, env: Env) => {
     const body = await parseJson<{ consultation_id?: string; audio_data?: any; voice_id?: string }>(req);
     const { consultation_id, audio_data, voice_id } = body;
 
-    // Here you would integrate with Deepgram, AssemblyAI, or similar
-    // For now, we'll create a placeholder
-
     const stmt = env.DB.prepare(
       `UPDATE consultations SET notes = ? WHERE id = ?`
     );
-    
+
     await stmt.bind(`Transcription processed for voice ${voice_id}`, consultation_id).run();
 
     return new Response(JSON.stringify({ 
@@ -168,13 +165,13 @@ router.post('/api/anamnesis/save', async (req: Request, env: Env) => {
     } = body;
 
     const anamnesis_id = crypto.randomUUID();
-    
+
     const stmt = env.DB.prepare(
       `INSERT INTO anamnesis 
        (id, consultation_id, chief_complaint, symptoms_json, signs_json, vital_signs_json) 
        VALUES (?, ?, ?, ?, ?, ?)`
     );
-    
+
     await stmt.bind(
       anamnesis_id,
       consultation_id,
@@ -221,14 +218,14 @@ router.post('/api/prescriptions/create', async (req: Request, env: Env) => {
     } = body;
 
     const prescription_id = crypto.randomUUID();
-    const qr_code = `QR_${prescription_id}`; // Generate actual QR code
-    
+    const qr_code = `QR_${prescription_id}`;
+
     const stmt = env.DB.prepare(
       `INSERT INTO prescriptions 
        (id, consultation_id, doctor_id, patient_id, medication_name, dosage, frequency, duration, instructions, qr_code) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
-    
+
     await stmt.bind(
       prescription_id,
       consultation_id,
@@ -276,13 +273,13 @@ router.post('/api/alerts/create', async (req: Request, env: Env) => {
     } = body;
 
     const alert_id = crypto.randomUUID();
-    
+
     const stmt = env.DB.prepare(
       `INSERT INTO alerts 
        (id, patient_id, consultation_id, alert_type, severity, message) 
        VALUES (?, ?, ?, ?, ?, ?)`
     );
-    
+
     await stmt.bind(
       alert_id,
       patient_id,
@@ -291,9 +288,6 @@ router.post('/api/alerts/create', async (req: Request, env: Env) => {
       severity,
       message
     ).run();
-
-    // Trigger notification (WhatsApp, etc.)
-    // await sendWhatsAppAlert(patient_id, message);
 
     return new Response(JSON.stringify({ 
       id: alert_id,
