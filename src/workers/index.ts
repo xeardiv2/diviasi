@@ -11,7 +11,6 @@ interface Env {
 const router = Router();
 
 async function parseJson<T = any>(req: Request): Promise<T> {
-  // Helper to type-assert JSON payloads
   return (await req.json()) as T;
 }
 
