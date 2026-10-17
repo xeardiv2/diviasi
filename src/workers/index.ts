@@ -55,8 +55,8 @@ router.post('/api/consultations/create', async (req: Request, env: Env) => {
 });
 
 // Get consultation details
-router.get('/api/consultations/:id', async (req: Request, env: Env) => {
-  const { id } = req.params as any;
+router.get('/api/consultations/:id', async (req: any, env: Env) => {
+  const { id } = req.params;
   
   const stmt = env.DB.prepare(
     `SELECT * FROM consultations WHERE id = ?`
