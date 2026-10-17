@@ -1,0 +1,20 @@
+name = "diviasi"
+main = "src/workers/index.ts"
+compatibility_date = "2024-10-01"
+
+[vars]
+CLOUDFLARE_ACCOUNT_ID = "a582a92c2bdec6ef5bc9cb633febc66e"
+JWT_SECRET = "123123"
+NEXT_PUBLIC_APP_NAME = "Divia"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sfdsfd"
+database_id = "e6cd7555-b992-4650-bc9f-ad5061f1ac7b"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "8e48e2babaca4e79a64f822790f08783"
+
+# Cloudflare Stream credentials should be configured from the Cloudflare dashboard
+# or via `wrangler secret put` / environment variables in your deployment.
