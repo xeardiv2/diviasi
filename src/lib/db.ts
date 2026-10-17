@@ -1,3 +1,5 @@
+/// <reference types="@cloudflare/workers-types" />
+
 export class Database {
   constructor(private db: D1Database) {}
 
